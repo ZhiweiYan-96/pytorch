@@ -91,6 +91,7 @@ class CMake:
     def run(self, args: List[str], env: Dict[str, str]) -> None:
         "Executes cmake with arguments and an environment."
 
+        # command = [self._cmake_command] + args + ["--trace"]
         command = [self._cmake_command] + args
         print(" ".join(command))
         try:

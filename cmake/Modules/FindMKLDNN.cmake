@@ -97,7 +97,8 @@ IF(NOT MKLDNN_FOUND)
     ENDIF()
   ENDIF()
 
-  ADD_SUBDIRECTORY(${MKLDNN_ROOT})
+  # ADD_SUBDIRECTORY(${MKLDNN_ROOT})
+  ADD_SUBDIRECTORY(${MKLDNN_ROOT} ${PROJECT_SOURCE_DIR}/build/third_party/ideep/mkl-dnn-cpu EXCLUDE_FROM_ALL)
 
   IF(NOT TARGET dnnl)
     MESSAGE("Failed to include MKL-DNN target")

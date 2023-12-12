@@ -9,6 +9,7 @@
 #  ONEDNN_USE_NATIVE_ARCH : Whether native CPU instructions should be used in ONEDNN. This should be turned off for
 #  general packaging to avoid incompatible CPU instructions. Default: OFF.
 
+
 IF (NOT ONEDNN_FOUND)
 SET(ONEDNN_FOUND OFF)
 
@@ -17,6 +18,10 @@ SET(ONEDNN_LIB_SHARED)
 SET(ONEDNN_LIB_STATIC)
 SET(ONEDNN_INCLUDE_DIR)
 SET(DNNL_INCLUDES)
+
+MESSAGE("In XPU oneDNN Makefile List")
+# MESSAGE("CMAKE_CXX_COMPILER: " ${CMAKE_CXX_COMPILER})
+
 
 IF(NOT "${USE_ONEDNN_DIR}" STREQUAL "")
   SET(ONEDNN_ROOT "${USE_ONEDNN_DIR}")
@@ -52,7 +57,7 @@ IF(NOT "${USE_ONEDNN_DIR}" STREQUAL "")
   ENDWHILE()
 ELSE()
   SET(THIRD_PARTY_DIR "${PROJECT_SOURCE_DIR}/third_party")
-  SET(ONEDNN_DIR "oneDNN")
+  SET(ONEDNN_DIR "ideep/mkl-dnn")
   SET(ONEDNN_ROOT "${THIRD_PARTY_DIR}/${ONEDNN_DIR}")
 
   FIND_PATH(ONEDNN_INCLUDE_DIR dnnl.hpp dnnl.h PATHS ${ONEDNN_ROOT} PATH_SUFFIXES include)
@@ -99,14 +104,17 @@ ELSE()
   # NOTE: We will not use TBB, but we cannot enable OMP. We build whole oneDNN by DPC++
   # compiler which only provides the Intel iomp. But oneDNN cmake scripts only try to
   # find the iomp in ICC compiler, which caused a build fatal error here.
-  SET(DNNL_CPU_RUNTIME "THREADPOOL" CACHE STRING "oneDNN cpu backend" FORCE)
+  SET(DNNL_CPU_RUNTIME "OMP" CACHE STRING "oneDNN cpu backend" FORCE)
   SET(DNNL_GPU_RUNTIME "SYCL" CACHE STRING "oneDNN gpu backend" FORCE)
+  SET(DNNL_DPCPP_HOST_COMPILER "g++" CACHE STRING "GPU Host Compiler for oneDNN" FORCE)
   SET(DNNL_BUILD_TESTS FALSE CACHE BOOL "build with oneDNN tests" FORCE)
   SET(DNNL_BUILD_EXAMPLES FALSE CACHE BOOL "build with oneDNN examples" FORCE)
   SET(DNNL_ENABLE_CONCURRENT_EXEC TRUE CACHE BOOL "multi-thread primitive execution" FORCE)
   SET(DNNL_EXPERIMENTAL TRUE CACHE BOOL "use one pass for oneDNN BatchNorm" FORCE)
+  # SET(DNNL_OBJ_RENAME TRUE CACHE BOOL "rename common object name " FORCE)
+  
 
-  ADD_SUBDIRECTORY(${ONEDNN_ROOT} oneDNN EXCLUDE_FROM_ALL)
+  ADD_SUBDIRECTORY(${ONEDNN_ROOT} ${PROJECT_SOURCE_DIR}/build/third_party/ideep/mkl-dnn-xpu EXCLUDE_FROM_ALL)
   SET(ONEDNN_LIBRARY ${DNNL_LIBRARY_NAME})
   IF(NOT TARGET ${ONEDNN_LIBRARY})
     MESSAGE(FATAL_ERROR "Failed to include oneDNN target")
@@ -127,7 +135,16 @@ ELSE()
   LIST(APPEND ONEDNN_INCLUDE_DIR ${DNNL_INCLUDES})
 ENDIF()
 
+
 SET(ONEDNN_FOUND ON)
+# temporary skip
+# Zhiwei comments: need remove
+SET(MKLDNN_FOUND TRUE)
 MESSAGE(STATUS "Found oneDNN: TRUE")
 
 ENDIF(NOT ONEDNN_FOUND)
+
+# set(CMAKE_CXX_COMPILER "/usr/bin/cc")
+# set(CMAKE_CXX_COMPILER "/usr/bin/c++")
+# set(CMAKE_CXX_COMPILER_ID "GNU")
+
